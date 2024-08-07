@@ -1,0 +1,29 @@
+---
+#  because GHA auto-disables crons when you don't touch the repo for a while,
+#  this... works around it.
+name: Update last_check file
+"on":
+  schedule:
+    - cron: '0 6 */5 * *'
+  workflow_dispatch:
+jobs:
+  gha_workaround:
+    permissions:
+      contents: write
+    name: "Update last_check file"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work around silly GHA problems
+        run: |
+          date +'Last check %Y-%m-%d' > last_check
+      - name: Run the Action
+        uses: devops-infra/action-commit-push@master
+        with:
+          github_token: "${{ secrets.GITHUB_TOKEN }}"
+          add_timestamp: true
+          commit_prefix: "[AUTO]"
+          commit_message: "Update last_check file"
+          force: false
+          target_branch: main
