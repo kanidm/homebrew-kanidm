@@ -76,8 +76,18 @@ fi
 
 echo "Updating file: ${SPECFILE}"
 # updates the file
-sed -i'' -E "s/version \\\".*/version \"${LATEST}\"/g" "${SPECFILE}"
-sed -i'' -E "s/sha256 \\\".*/sha256 \"${FILEHASH}\"/g" "${SPECFILE}"
+if [ "$(uname -s)" == "Darwin" ]; then
+    # macOS sed
+
+    sed -i '' -E "s/version \\\".*/version \"${LATEST}\"/g" "${SPECFILE}"
+    sed -i '' -E "s/sha256 \\\".*/sha256 \"${FILEHASH}\"/g" "${SPECFILE}"
+else
+    # GNU sed
+    sed -i'' -E "s/version \\\".*/version \"${LATEST}\"/g" "${SPECFILE}"
+    sed -i'' -E "s/sha256 \\\".*/sha256 \"${FILEHASH}\"/g" "${SPECFILE}"
+fi
+
+
 
 DIFF_LINES="$(git diff | wc -l)"
 if [ "${DIFF_LINES}" -ne 0 ]; then
