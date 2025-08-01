@@ -7,7 +7,10 @@ set -e
 
 # get_latest_release from here https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c
 get_latest_release() {
-  curl -L --silent "$1" | jq -r '.[] | select(.tag_name != "debs") | limit(1; .) | .tag_name' | head -n1
+  curl -L --silent -f "$1" | jq -r '.[] | select(.tag_name != "debs") | limit(1; .) | .tag_name | limit(1; .) ' | head -n1 || {
+    echo "Failed to get latest release from $1"
+    exit 1
+  }
 }
 
 SPECFILE=$(find "$(pwd)" -type f -name '*.rb' | head -n1)
@@ -21,18 +24,7 @@ fi
 
 LATEST="$(get_latest_release "https://api.github.com/repos/kanidm/kanidm/releases")"
 
-# grab the update url from the spec file
-# URL=$(grep -E homepage "${SPECFILE}" | awk '{print $NF}' | tr -d '"')
-# if [ -z "${URL}" ]; then
-#     echo "Failed to find check URL, bailing!"
-#     exit 1
-# else
-#     echo "Check URL: ${URL}"
-# fi
-
-
 # pull the latest version
-# LATEST="$(curl -sL "${URL}" | jq -r '.tag_name')"
 if [ -z "${LATEST}" ]; then
     echo "Failed to find latest version, bailing!"
     exit 1
