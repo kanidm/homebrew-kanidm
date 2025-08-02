@@ -79,18 +79,16 @@ def update_specfile(specfile: Path, latest_release: str, file_hash: str) -> None
     new_url = f'url "{download_url(latest_release)}"'
     new_hash = f'sha256 "{file_hash}"'
     version_replacer = re.compile(r"version\s+.*")
-    url_replacer = re.compile(r"url\s+.*")
+    url_replacer = re.compile(r"url\s+https.*")
     sha256_replacer = re.compile(r"sha256\s+.*")
     try:
         content = specfile.read_text()
         new_content = url_replacer.sub(new_url, content)
         new_content = version_replacer.sub(f'version "{latest_release}"', new_content)
         new_content = sha256_replacer.sub(new_hash, new_content)
-        print(f"Updating {specfile} with latest release: {latest_release}")
         if content != new_content:
-            print("Updating specfile content...")
+            print(f"Updating specfile content... version is now {latest_release}")
             specfile.write_text(new_content)
-            print(new_content)
 
     except Exception as e:  # pylint: disable=broad-except
         print(f"Failed to update {specfile}: {e}", file=sys.stderr)
