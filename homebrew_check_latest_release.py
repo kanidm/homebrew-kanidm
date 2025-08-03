@@ -54,11 +54,6 @@ def find_specfile() -> Path:
     return specfile
 
 
-def download_url(new_version: str) -> str:
-    """download the URL for the given version"""
-    return f"https://github.com/kanidm/kanidm/archive/refs/tags/{new_version}.tar.gz"
-
-
 def get_hash(url: str) -> str:
     """get the hash of the file at the given URL"""
     try:
@@ -75,16 +70,12 @@ def get_hash(url: str) -> str:
 
 def update_specfile(specfile: Path, latest_release: str, file_hash: str) -> None:
     """update the specfile with the latest release tag"""
-    # url looks like url "https://github.com/kanidm/kanidm/archive/refs/tags/#{version}.tar.gz"
-    new_url = f'url "{download_url(latest_release)}"'
     new_hash = f'sha256 "{file_hash}"'
     version_replacer = re.compile(r"version\s+.*")
-    url_replacer = re.compile(r"url\s+https.*")
     sha256_replacer = re.compile(r"sha256\s+.*")
     try:
         content = specfile.read_text()
-        new_content = url_replacer.sub(new_url, content)
-        new_content = version_replacer.sub(f'version "{latest_release}"', new_content)
+        new_content = version_replacer.sub(f'version "{latest_release}"', content)
         new_content = sha256_replacer.sub(new_hash, new_content)
         if content != new_content:
             print(f"Updating specfile content... version is now {latest_release}")
@@ -98,7 +89,13 @@ def update_specfile(specfile: Path, latest_release: str, file_hash: str) -> None
 def main() -> None:
     """Main function to execute the script logic"""
     version = get_latest_release()
-    update_specfile(find_specfile(), version, get_hash(download_url(version)))
+    update_specfile(
+        find_specfile(),
+        version,
+        get_hash(
+            f"https://github.com/kanidm/kanidm/archive/refs/tags/{version}.tar.gz"
+        ),
+    )
     sys.exit(0)
 
 
