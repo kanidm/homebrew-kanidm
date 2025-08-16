@@ -13,7 +13,7 @@ jobs:
     name: "Update last_check file"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Work around silly GHA problems
         run: |
