@@ -1,9 +1,9 @@
 class Kanidm < Formula
   desc "Kanidm CLI"
-  version "v1.7.4"
+  version "v1.8.0"
   homepage "https://api.github.com/kanidm/kanidm/releases/latest"
   url "https://github.com/kanidm/kanidm/archive/refs/tags/#{version}.tar.gz"
-  sha256 "8f21da945c880b2f153311218846843d19b3bdb731d4f7832b440d439f75c1cd"
+  sha256 "9bf99472c2c62dbb11521609ccdba772a3d24fa21dd87f5f3de3ccc426436667"
   license "Mozilla Public License 2.0"
   head "https://github.com/kanidm/kanidm.git", branch: "master"
 
