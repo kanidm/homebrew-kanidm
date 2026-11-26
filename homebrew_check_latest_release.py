@@ -18,6 +18,10 @@ from pathlib import Path
 
 import requests
 
+STABLE_TAG = re.compile(r"v[0-9]+\.[0-9]+\.[0-9]+")
+VERSION_LINE = re.compile(r'(?m)^([ \t]*version )"(v[0-9]+\.[0-9]+\.[0-9]+)"$')
+HASH_LINE = re.compile(r'(?m)^([ \t]*sha256 )"[0-9a-f]{64}"$')
+
 URL = "https://api.github.com/repos/kanidm/kanidm/releases"
 
 
@@ -28,11 +32,15 @@ def get_latest_release() -> str:
         response.raise_for_status()
         data = response.json()
         for entry in data:
-            if entry.get("tag_name"):
-                if entry["tag_name"] == "debs":
-                    continue
-                return str(entry["tag_name"])
-        raise ValueError("Invalid tag name or 'debs' found.")
+            tag = entry.get("tag_name")
+            if (
+                isinstance(tag, str)
+                and STABLE_TAG.fullmatch(tag)
+                and not entry.get("draft")
+                and not entry.get("prerelease")
+            ):
+                return tag
+        raise ValueError("No published stable release with a vX.Y.Z tag found.")
     except requests.RequestException as e:
         print(f"Failed to get latest release from {URL}: {e}", file=sys.stderr)
         sys.exit(1)
@@ -42,16 +50,6 @@ def get_latest_release() -> str:
     except ValueError as e:
         print(f"Some other weird error occurred: {e}", file=sys.stderr)
         sys.exit(1)
-
-
-def find_specfile() -> Path:
-    """find the first .rb file in the current directory"""
-
-    specfile = next(Path.cwd().glob("*.rb"), None)
-    if specfile is None:
-        print("No .rb file found in the current directory.", file=sys.stderr)
-        sys.exit(1)
-    return specfile
 
 
 def get_hash(url: str) -> str:
@@ -68,35 +66,34 @@ def get_hash(url: str) -> str:
         sys.exit(1)
 
 
-def update_specfile(specfile: Path, latest_release: str, file_hash: str) -> None:
-    """update the specfile with the latest release tag"""
-    new_hash = f'sha256 "{file_hash}"'
-    version_replacer = re.compile(r"version\s+.*")
-    sha256_replacer = re.compile(r"sha256\s+.*")
-    try:
-        content = specfile.read_text()
-        new_content = version_replacer.sub(f'version "{latest_release}"', content)
-        new_content = sha256_replacer.sub(new_hash, new_content)
-        if content != new_content:
-            print(f"Updating specfile content... version is now {latest_release}")
-            specfile.write_text(new_content)
+def version_tuple(tag: str) -> tuple[int, ...]:
+    return tuple(map(int, tag[1:].split(".")))
 
-    except Exception as e:  # pylint: disable=broad-except
-        print(f"Failed to update {specfile}: {e}", file=sys.stderr)
-        sys.exit(1)
+
+def update_specfile(specfile: Path, latest_release: str) -> None:
+    if not STABLE_TAG.fullmatch(latest_release):
+        raise ValueError(f"Unexpected stable release tag: {latest_release!r}")
+
+    content = specfile.read_text()
+    versions = list(VERSION_LINE.finditer(content))
+    if len(versions) != 1 or len(HASH_LINE.findall(content)) != 1:
+        raise ValueError("Expected exactly one version and SHA-256 in kanidm.rb.")
+    if version_tuple(latest_release) <= version_tuple(versions[0][2]):
+        print(f"No newer release: upstream {latest_release}, tap {versions[0][2]}.")
+        return
+
+    file_hash = get_hash(
+        f"https://github.com/kanidm/kanidm/archive/refs/tags/{latest_release}.tar.gz"
+    )
+    print(f"Updating kanidm.rb to {latest_release}")
+    new_content = VERSION_LINE.sub(lambda m: f'{m[1]}"{latest_release}"', content)
+    new_content = HASH_LINE.sub(lambda m: f'{m[1]}"{file_hash}"', new_content)
+    specfile.write_text(new_content)
 
 
 def main() -> None:
-    """Main function to execute the script logic"""
-    version = get_latest_release()
-    update_specfile(
-        find_specfile(),
-        version,
-        get_hash(
-            f"https://github.com/kanidm/kanidm/archive/refs/tags/{version}.tar.gz"
-        ),
-    )
-    sys.exit(0)
+    """Update only the version and checksum of the Kanidm formula."""
+    update_specfile(Path("kanidm.rb"), get_latest_release())
 
 
 if __name__ == "__main__":

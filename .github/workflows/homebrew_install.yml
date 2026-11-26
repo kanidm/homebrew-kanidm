@@ -1,0 +1,22 @@
+---
+name: Homebrew install
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: Install Kanidm (Homebrew)
+    runs-on: macos-26
+    timeout-minutes: 35
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Build and test the checked-out formula
+        run: .github/scripts/test-homebrew-install.sh
