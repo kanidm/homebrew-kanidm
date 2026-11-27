@@ -18,8 +18,9 @@ brew install kanidm
 
 ## Automated release updates
 
-Pull requests install the Linux build tools (including Clang and LLD), build
-the checked-out Kanidm formula from source on Ubuntu, and run `brew test`.
+Pull requests install Clang and LLD, build the checked-out Kanidm formula from
+source on Ubuntu, and run `brew test`. On Linux the formula pulls in libudev
+through Homebrew's `systemd` package.
 The scheduled updater opens or updates one release PR and enables squash
 auto-merge. GitHub waits for the required install and dependency checks (and
 any required reviews).

@@ -12,8 +12,13 @@ class Kanidm < Formula
     strategy :github_latest
   end
 
-
   depends_on "rust" => :build
+
+  on_linux do
+    depends_on "pkgconf" => :build
+    # Homebrew's systemd formula provides libudev for hardware security keys.
+    depends_on "systemd"
+  end
 
   def install
     system "cargo", "install", "--bin", "kanidm", "--path", "tools/cli", "--locked", "--root", *prefix
@@ -24,6 +29,6 @@ class Kanidm < Formula
   end
 
   test do
-    system "#{bin}/kanidm", "--version"
+    assert_match "Usage: kanidm", shell_output("#{bin}/kanidm --help")
   end
 end
