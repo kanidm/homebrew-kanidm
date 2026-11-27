@@ -18,10 +18,11 @@ brew install kanidm
 
 ## Automated release updates
 
-Pull requests build the checked-out Kanidm formula from source on macOS and
-run `brew test`. The scheduled updater opens or updates one release PR and
-enables squash auto-merge. GitHub waits for the required install and dependency
-checks (and any required reviews).
+Pull requests install the Linux build tools (including Clang and LLD), build
+the checked-out Kanidm formula from source on Ubuntu, and run `brew test`.
+The scheduled updater opens or updates one release PR and enables squash
+auto-merge. GitHub waits for the required install and dependency checks (and
+any required reviews).
 
 The updater assumes auto-merge and squash merging are enabled, and
 **Install Kanidm (Homebrew)** and **dependency-review** are required on `main`.

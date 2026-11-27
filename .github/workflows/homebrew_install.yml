@@ -10,13 +10,19 @@ permissions:
 jobs:
   install:
     name: Install Kanidm (Homebrew)
-    runs-on: macos-26
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
-    env:
-      HOMEBREW_NO_AUTO_UPDATE: '1'
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential clang lld
       - name: Build and test the checked-out formula
-        run: .github/scripts/test-homebrew-install.sh
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew update
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          .github/scripts/test-homebrew-install.sh
