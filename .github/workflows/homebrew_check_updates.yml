@@ -2,7 +2,7 @@
 name: Check and update brew definitions
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: "0 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -28,7 +28,7 @@ jobs:
       - name: Check the upstream release
         id: update
         run: |
-          ./homebrew_check_latest_release.py
+          uv run ./homebrew_check_latest_release.py
           if ! git diff --quiet -- kanidm.rb; then
             echo 'changed=true' >> "$GITHUB_OUTPUT"
           fi

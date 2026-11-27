@@ -10,8 +10,8 @@ This script fetches the latest release tag from the Kanidm GitHub repository
 and updates the Homebrew formula accordingly.
 """
 
-import re
 import json
+import re
 import sys
 from hashlib import sha256
 from pathlib import Path
@@ -61,7 +61,7 @@ def get_hash(url: str) -> str:
     except requests.RequestException as e:
         print(f"Failed to get hash from {url}: {e}", file=sys.stderr)
         sys.exit(1)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # noqa: BLE001
         print(f"Some other weird error occurred: {e}", file=sys.stderr)
         sys.exit(1)
 
